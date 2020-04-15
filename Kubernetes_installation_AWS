@@ -1,0 +1,46 @@
+Kubernetes installation in AWS
+-------------------------------------
+
+Create Ubuntu EC2 instances in AWS . t3.large - 2 cores 8GB Machine
+
+	1 Master and 2 nodes
+
+Installing Master node
+-----------------------------
+1) apt-get update
+2) apt-get install docker.io -y
+3) systemctl enable docker.service
+4) apt-get update && apt-get install -y apt-transport-https
+5) curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+6) 
+
+	cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
+	deb http://apt.kubernetes.io/ kubernetes-xenial main
+	EOF
+
+7) apt-get update
+8) apt-get install -y kubeadm kubectl kubelet
+9) kubeadm init
+10)
+	mkdir -p $HOME/.kube
+	sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+	sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+11) Create pod network from below url (https://kubernetes.io/docs/concepts/cluster-administration/addons/ use calico networking)
+	kubectl apply -f https://docs.projectcalico.org/v3.10/manifests/calico.yaml
+
+12) check the master node status with below command
+	kubectl get pods --all-namespaces
+	kubectl get nodes
+	kubectl cluster-info
+
+Installing worker nodes
+---------------------------
+1) Repeat all the steps from 1-8
+2) get the node join command from master node - 
+	kubeadm token create --print-join-command
+3) Join the cluster from the above command
+	Ex : kubeadm join 10.0.1.64:6443 --token bpnwaf.k33djh8jqf6c958r     --discovery-token-ca-cert-hash sha256:9afda586c1c30341824c73119effb404af4b52045d7fcf2a4053e73bd1aefc26
+	
+4) Once completed- go to master node and check as below	
+	kubectl get nodes
